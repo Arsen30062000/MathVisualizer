@@ -1339,19 +1339,30 @@
         
         // Also run when user clicks a nav link
         document.querySelectorAll('nav a[href^="#"]').forEach(link => {
-            link.addEventListener('click', function(e) {
-                // Wait a moment for scroll to finish, then highlight
-                setTimeout(() => {
-                    const targetId = this.getAttribute('href');
-                    const target = document.querySelector(targetId);
-                    if (target) {
-                        target.classList.remove('section-highlight');
-                        void target.offsetWidth;
-                        target.classList.add('section-highlight');
-                    }
-                }, 300); // Slight delay after scroll starts
+    link.addEventListener('click', function(e) {
+        e.preventDefault(); // 🔥 Prevent default anchor behavior
+
+        const targetId = this.getAttribute('href');
+        const target = document.querySelector(targetId);
+
+        if (target) {
+            // 🔥 Scroll the iframe's own document to the target
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+                inline: 'nearest'
             });
-        });
+
+            // 🔥 Trigger highlight after scroll
+            setTimeout(() => {
+                target.classList.remove('section-highlight');
+                void target.offsetWidth; // force reflow
+                target.classList.add('section-highlight');
+            }, 400); // slightly longer to ensure scroll completes
+        }
+    });
+});
     </script>
 </body>
 </html>
+
