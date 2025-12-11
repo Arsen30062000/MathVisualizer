@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MathVisualizer - Ինտերակտիվ Ֆունկցիաների Տեսողական Ցուցադրություն</title>
+    <!-- Armenian-optimized font -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Armenian:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #095ce1;
+            --primary-dark: #0748b5;
+            --secondary: #fbbb09;
+            --secondary-dark: #d9a008;
+            --accent: #28a745;
+            --accent-dark: #218838;
+            --light: #f8fafc;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --warning: #ffc107;
+            --info: #17a2b8;
+        }
+        
+        body {
+            font-family: 'Noto Sans Armenian', Arial, sans-serif;
+            line-height: 1.6;
+            color: #343a40;
+            background-color: var(--light);
+            hyphens: auto;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 32px;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 21px;
+            opacity: 0.9;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        nav {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+        
+        .logo {
+            font-size: 21px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #343a40;
+            font-weight: 600;
+            transition: color 0.3s ease;
+            font-size: 17px;
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+        
+        .main-content {
+            padding: 2rem 0;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        
+        .content-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 27px;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            text-align: center;
+        }
+        
+        .concepts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .concept-card {
+            background: var(--light-gray);
+            padding: 1.5rem;
+            border-radius: 12px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .concept-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(9, 92, 225, 0.2);
+            background: white;
+        }
+        
+        .concept-card h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 21px;
+        }
+        
+        .concept-card p {
+            color: var(--gray);
+            font-size: 17px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .function-plot {
+            width: 100%;
+            height: 240px;
+            background: white;
+            border: 2px solid var(--light-gray);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        
+        .grid-lines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(to right, rgba(108, 117, 125, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(108, 117, 125, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+        
+        .axis {
+            position: absolute;
+            background: var(--gray);
+            z-index: 2;
+        }
+        
+        .x-axis {
+            width: 100%;
+            height: 1px;
+            top: 50%;
+            left: 0;
+        }
+        
+        .y-axis {
+            height: 100%;
+            width: 1px;
+            left: 50%;
+            top: 0;
+        }
+        
+        .function-svg {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 3;
+        }
+        
+        .period-shading {
+            fill: rgba(236, 72, 153, 0.15);
+            stroke: none;
+        }
+        
+        .explanation-box {
+            background: rgba(9, 92, 225, 0.08);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .explanation-box:hover {
+            background: rgba(9, 92, 225, 0.12);
+            transform: translateX(2px);
+        }
+        
+        .explanation-box h4 {
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 18px;
+        }
+        
+        .explanation-box p {
+            font-size: 16px;
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+        
+        .formula-highlight {
+            background: rgba(9, 92, 225, 0.15);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: var(--primary-dark);
+            font-size: 16px;
+        }
+        
+        .key-points {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+        
+        .key-point {
+            /* Merged from both definitions */
+            background: white;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border-left: 3px solid var(--primary);
+            font-size: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease;
+            min-width: 0; /* Allows grid items to shrink below content size if needed */
+            width: 100%; /* Ensure it respects parent */
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        .key-point:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .key-point strong {
+            color: var(--primary);
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .key-point .value {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #343a40;
+            font-size: 15px;
+        }
+        
+        .formula-display {
+            background: linear-gradient(135deg, rgba(9, 92, 225, 0.1), rgba(40, 167, 69, 0.1));
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary-dark);
+            border: 1px solid rgba(9, 92, 225, 0.2);
+            white-space: normal;
+            word-break: break-word;
+        }
+        
+        .interactive-controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            flex: 1;
+            min-width: 140px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 16px;
+            white-space: normal;
+            line-height: 1.4;
+            min-height: 2.2em;
+        }
+        
+        .control-group input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid var(--light-gray);
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .control-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .control-group input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: var(--light-gray);
+            border-radius: 4px;
+            outline: none;
+            padding: 0;
+            margin: 10px 0;
+            background-image: linear-gradient(to right, var(--primary) 0%, var(--primary) 0%, var(--light-gray) 0%, var(--light-gray) 100%);
+        }
+        
+        .control-group input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            background: transparent;
+            border-radius: 4px;
+            border: none;
+        }
+        
+        .control-group input[type="range"]::-moz-range-track {
+            width: 100%;
+            height: 8px;
+            background: transparent;
+            border-radius: 4px;
+            border: none;
+        }
+        
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            margin-top: -8px;
+            border: 3px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .control-group input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .control-group input[type="range"] {
+            --range-percent: 0%;
+            background-image: linear-gradient(to right, var(--primary) 0%, var(--primary) var(--range-percent), var(--light-gray) var(--range-percent), var(--light-gray) 100%);
+        }
+        
+        .control-group input[type="range"]:focus::-webkit-slider-thumb,
+        .control-group input[type="range"]:focus::-moz-range-thumb {
+            box-shadow: 0 0 0 3px rgba(9, 92, 225, 0.3);
+        }
+        
+        .control-group input[type="range"]:active::-webkit-slider-thumb,
+        .control-group input[type="range"]:active::-moz-range-thumb {
+            background: var(--primary-dark);
+        }
+        
+        .value-display {
+            font-size: 16px;
+            color: var(--primary);
+            font-weight: bold;
+            text-align: center;
+            margin-top: 0.25rem;
+            font-family: monospace;
+        }
+        
+        .mathematical-insight {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.15));
+            border-left: 4px solid var(--accent);
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 8px;
+            font-size: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .mathematical-insight strong {
+            color: var(--accent);
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 17px;
+        }
+        
+        .general-sine-section {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(9, 92, 225, 0.08), rgba(40, 167, 69, 0.08));
+            border-left: 4px solid var(--primary);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .general-sine-section h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 27px;
+        }
+        
+        .general-sine-section .formula {
+            font-family: 'Courier New', monospace;
+            font-size: 21px;
+            background: rgba(9, 92, 225, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary);
+            white-space: normal;
+            word-break: break-word;
+        }
+        
+        .general-sine-section h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 18px;
+        }
+        
+        .general-sine-section p,
+        .general-sine-section li {
+            color: #343a40;
+            font-size: 16px;
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+        
+        .general-sine-section ul {
+            margin-top: 0.5rem;
+            padding-left: 1.5rem;
+        }
+        
+        .general-sine-section strong {
+            color: #343a40;
+        }
+        
+        .nobr {
+            white-space: nowrap;
+        }
+        
+        .control-group label,
+        .key-point,
+        .formula-display,
+        .general-sine-section .formula,
+        .explanation-box,
+        .mathematical-insight {
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        @media (min-width: 768px) and (max-width: 992px) {
+            .key-points {
+                grid-template-columns: 1fr;
+                gap: 0.6rem;
+            }
+            
+            .function-plot {
+                height: 240px;
+            }
+            
+            .nav-links a {
+                font-size: 15px;
+                padding: 0 0.8rem;
+            }
+            
+            .logo {
+                font-size: 19px;
+            }
+        }
+        
+        @media (max-width: 1000px) {
+            .nav-links {
+                display: none;
+            }
+        }
+        
+        @media (min-width: 1190px) and (max-width: 1400px) {
+            .key-points {
+                grid-template-columns: 1fr;
+                gap: 0.6rem;
+            }
+            
+            .key-point {
+                min-width: auto;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .concept-card {
+                padding: 1.25rem;
+            }
+            
+            .content-section {
+                padding: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .concepts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 27px;
+            }
+            
+            .section-title {
+                font-size: 21px;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .interactive-controls {
+                flex-direction: column;
+            }
+            
+            .function-plot {
+                height: 240px;
+            }
+            
+            .key-points {
+                grid-template-columns: 1fr;
+            }
+            
+            .content-section {
+                padding: 1.25rem;
+                margin: 0 0.5rem;
+            }
+            
+            .concept-card {
+                padding: 1rem;
+                margin: 0;
+            }
+            
+            .general-sine-section {
+                padding: 1.5rem;
+                margin: 0 0.5rem;
+            }
+            
+            .control-group {
+                min-width: 130px;
+            }
+        }
+        
+        @media (max-width: 784px) {
+            .general-sine-section {
+                margin-top: 2.5rem;
+            }
+        }
+        
+        @media (max-width: 583px) {
+            .general-sine-section {
+                margin-top: 2.5rem !important;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .container {
+                width: 95%;
+            }
+            
+            .content-section {
+                padding: 1rem;
+                margin: 0;
+                border-radius: 8px;
+            }
+            
+            .concept-card {
+                padding: 0.85rem;
+                border-radius: 8px;
+            }
+            
+            .explanation-box {
+                padding: 0.85rem;
+            }
+            
+            .formula-display {
+                padding: 0.85rem;
+                font-size: 16px;
+            }
+            
+            .general-sine-section {
+                padding: 1rem;
+                margin: 0;
+            }
+            
+            .general-sine-section .formula {
+                font-size: 18px;
+                padding: 0.85rem;
+            }
+            
+            .control-group label {
+                font-size: 15px;
+            }
+            
+            .key-point {
+                padding: 0.6rem;
+                font-size: 14px;
+            }
+            
+            .key-point .value {
+                font-size: 14px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 22px;
+            }
+            
+            .subtitle {
+                font-size: 16px;
+                padding: 0 10px;
+            }
+            
+            .section-title {
+                font-size: 19px;
+            }
+            
+            .concept-card h3 {
+                font-size: 19px;
+            }
+            
+            .concept-card p,
+            .explanation-box p {
+                font-size: 15px;
+            }
+            
+            .explanation-box h4 {
+                font-size: 16px;
+            }
+            
+            .key-point {
+                padding: 0.5rem;
+                font-size: 14px;
+            }
+            
+            .function-plot {
+                height: 240px;
+            }
+            
+            .control-group label {
+                font-size: 14px;
+                line-height: 1.4;
+            }
+        }
+        
+        .reset-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            font-family: 'Noto Sans Armenian', Arial, sans-serif;
+            font-size: 16px;
+        }
+        
+        .reset-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        html, body, .container {
+            overflow-x: hidden;
+        }
+        
+        @keyframes highlightSection {
+            0%   { background-color: rgba(255, 215, 0, 0.3); }
+            100% { background-color: transparent; }
+        }
+        
+        .section-highlight {
+            animation: highlightSection 1.2s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>MathVisualizer</h1>
+            <p class="subtitle">Եռանկյունաչափական ֆունկցիաների հասկացությունների ինտերակտիվ տեսողական ցուցադրություններ</p>
+        </div>
+    </header>
+    
+    <nav>
+        <div class="container nav-container">
+            <div class="logo">MathVisualizer</div>
+            <div class="nav-links">
+                <a href="#amplitude">Ամպլիտուդ</a>
+                <a href="#period">Պարբերություն</a>
+                <a href="#phase">Փուլային տեղաշարժ</a>
+                <a href="#vertical">Ուղղահայաց տեղաշարժ</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="main-content">
+            <div class="content-section">
+                <h2 class="section-title">Ներդաշնակ տատանումներ</h2>
+                <p style="font-size: 18px; margin-bottom: 2rem;">Ֆունկցիաների վարքագիծը և գրաֆիկների ձևափոխությունը հասկանալը հիմնարար նշանակություն ունի ֆունկցիաների հետազոտման համար։ Այս ինտերակտիվ վիզուալիզացիաները ցույց են տալիս, թե ինչպես են տարբեր պարամետրեր ազդում ներդաշնակ տատանումների վրա։</p>
+                
+                <div class="concepts-grid">
+                    <!-- Amplitude Card -->
+                    <div class="concept-card" id="amplitude">
+                        <h3>Ամպլիտուդ</h3>
+                        <p>Ինչպես է ամպլիտուդը ազդում ալիքի բարձրության վրա</p>
+                        <div class="function-plot">
+                            <div class="grid-lines"></div>
+                            <div class="axis x-axis"></div>
+                            <div class="axis y-axis"></div>
+                            <svg class="function-svg" viewBox="0 0 400 200" preserveAspectRatio="none">
+                                <path id="amplitudeCurve" d="M0,100 Q50,50 100,100 T200,100 T300,100 T400,100" 
+                                      fill="none" stroke="#095ce1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                <line id="maxLine" x1="0" y1="50" x2="400" y2="50" stroke="#28a745" stroke-width="1" stroke-dasharray="5,5"/>
+                                <line id="minLine" x1="0" y1="150" x2="400" y2="150" stroke="#28a745" stroke-width="1" stroke-dasharray="5,5"/>
+                                <line id="midLine" x1="0" y1="100" x2="400" y2="100" stroke="#6c757d" stroke-width="1"/>
+                                <circle id="peakPoint" cx="50" cy="50" r="4" fill="#095ce1" stroke="white" stroke-width="1.5"/>
+                                <circle id="troughPoint" cx="150" cy="150" r="4" fill="#095ce1" stroke="white" stroke-width="1.5"/>
+                                <line id="amplitudeLine" x1="50" y1="100" x2="50" y2="50" stroke="#fbbb09" stroke-width="2"/>
+                                <text id="amplitudeLabel" x="60" y="75" font-size="12" fill="#fbbb09" text-anchor="start">A</text>
+                            </svg>
+                        </div>
+                        <div class="interactive-controls">
+                            <div class="control-group">
+                                <label for="amplitudeControl">Ամպլիտուդ: <span id="amplitudeDisplay">45</span></label>
+                                <input type="range" id="amplitudeControl" min="10" max="80" value="45">
+                            </div>
+                        </div>
+                        <div class="explanation-box">
+                            <h4>Ամպլիտուդի բնութագիրը</h4>
+                            <div class="formula-display">y = A·sin(ωx + φ) + D</div>
+                            <p>Ամպլիտուդը (<span class="formula-highlight">A</span>) որոշում է, թե որքանով է ֆունկցիան շեղվում իր «միջին» գծից։ Այս պարամետրը անմիջականորեն կարգավորում է ֆունկցիայի <strong>մեծագույն</strong> և <strong>փոքրագույն</strong> արժեքները։</p>
+                            <div class="key-points">
+                                <div class="key-point">
+                                    <strong>Արժեքների բազմությունը</strong>
+                                    <div class="value">[D−A, D+A]</div>
+                                </div>
+                                <div class="key-point">
+                                    <strong>Մեծագույն արժեքը</strong>
+                                    <div class="value">D + A</div>
+                                </div>
+                                <div class="key-point">
+                                    <strong>Փոքրագույն արժեքը</strong>
+                                    <div class="value">D − A</div>
+                                </div>
+                                <div class="key-point">
+                                    <strong>Ամպլիտուդի բանաձեվը</strong>
+                                    <div class="value">A = (Ymax − Ymin)/2</div>
+                                </div>
+                            </div>
+                            <p>Ամպլիտուդը ուղղահայաց մասշտաբավորում է ալիքը՝ առանց ազդելու դրա հորիզոնական հատկությունների կամ ուղղահայաց դիրքի վրա։</p>
+                        </div>
+                        <div class="mathematical-insight">
+                            <strong>🎯 Գլխավոր եզրակացություն</strong>
+                            Ամպլիտուդը (A) ալիքը ուղղահայաց մասշտաբավորում է։ Երբ այլ պարամետրեր (ω, φ, D) ֆիքսված են, A-ի կրկնապատկումը կրկնապատկում է ալիքի բարձրությունը։ Ֆիզիկայում ամպլիտուդը հաճախ ներկայացնում է ազդանշանի ուժգնությունը կամ ալիքի էներգիան։
+                        </div>
+                    </div>
+                    
+                    <!-- Period Card -->
+                    <div class="concept-card" id="period">
+                        <h3>Պարբերություն & Հաճախականություն</h3>
+                        <p>Ինչպես է անկյունային հաճախականությունը ազդում ալիքի երկարության վրա</p>
+                        <div class="function-plot">
+                            <div class="grid-lines"></div>
+                            <div class="axis x-axis"></div>
+                            <div class="axis y-axis"></div>
+                            <svg class="function-svg" viewBox="0 0 400 200" preserveAspectRatio="none">
+                                <rect id="periodShading" x="0" y="0" width="200" height="200" fill="rgba(236, 72, 153, 0.15)" stroke="none"/>
+                                <path id="periodCurveColored" d="M0,100 Q50,50 100,100 T200,100" 
+                                      fill="none" stroke="#ec4899" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path id="periodCurveGrey" d="M200,100 T300,100 T400,100" 
+                                      fill="none" stroke="#6c757d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                <line id="periodMarker" x1="100" y1="0" x2="100" y2="200" stroke="#ec4899" stroke-width="1" stroke-dasharray="5,5"/>
+                                <line id="periodLine" x1="0" y1="30" x2="200" y2="30" stroke="#28a745" stroke-width="2"/>
+                                <text x="100" y="20" font-size="12" fill="#28a745" text-anchor="middle">Պարբերություն (T)</text>
+                                <circle id="startPoint" cx="0" cy="100" r="0" fill="#ec4899" stroke="white" stroke-width="1.5"/>
+                                <circle id="endPoint" cx="200" cy="100" r="4" fill="#ec4899" stroke="white" stroke-width="1.5"/>
+                                <circle class="ox-intersection" cx="0" cy="100" r="3" fill="#ec4899"/>
+                            </svg>
+                        </div>
+                        <div class="interactive-controls">
+                            <div class="control-group">
+                                <!-- FIX: Now controls ω (angular frequency) -->
+                                <label for="periodControl">Անկյունային հաճախականություն (ω): <span id="periodDisplay">3.14</span></label>
+                                <input type="range" id="periodControl" min="0.5" max="6.28" value="3.14" step="0.01">
+                            </div>
+                        </div>
+                        <div class="explanation-box">
+                            <h4>Պարբերության & հաճախականության բնութագիրը</h4>
+                            <div class="formula-display">y = A·sin(ωx + φ) + D</div>
+                            <p>Անկյունային հաճախականությունը (<span class="formula-highlight">ω</span>) սահմանում է մեկ միավորի համար ալիքի տատանման արագությունը ռադիաններով։</p>
+                            <div class="key-points">
+                                <div class="key-point">
+                                    <strong>Անկյունային հաճախականությունը</strong>
+                                    <div class="value">ω ռադիան/միավոր</div>
+                                </div>
+                                <div class="key-point">
+                                    <strong>Պարբերությունը</strong>
+                                    <div class="value">T = 2π/|ω| միավոր</div>
+                                </div>
+                                <div class="key-point">
+                                    <strong>Հաճախականությունը</strong>
+                                    <div class="value">f = |ω|/(2π) ցիկլ/միավոր</div>
+                                </div>
+                                <div class="key-point">
+                                    <strong>Կապը</strong>
+                                    <div class="value">|ω| = 2πf</div>
+                                </div>
+                            </div>
+                            <p><strong>Հիմնական տարբերությունները:</strong></p>
+                            <p>• <span class="formula-highlight">ω (անկյունային հաճախականություն)</span>: x միավորի համար «անցած» ռադիանները</p>
+                            <p>• <span class="formula-highlight">f (հաճախականություն)</span>: x միավորի համար «անցած» ամբողջական ցիկլերը</p>
+                            <p>• <span class="formula-highlight">T (պարբերություն)</span>: մեկ լրիվ ցիկլի համար անհրաժեշտ x միավորները</p>
+                            <p>Ընդհանրապես <span class="formula-highlight">բարձր |ω|</span> ⇒ փոքր պարբերություն ⇒ արագ տատանումներ։</p>
+                        </div>
+                        <div class="mathematical-insight">
+                            <strong>🎯 Գլխավոր եզրակացություն</strong>
+                            Անկյունային հաճախականությունը (ω) և պարբերությունը (T) հակադարձ համեմատական են: ω-ի կրկնապատկումը պարբերությունը կիսով չափ փոքրացնում է, ինչի արդյունքում ալիքը տատանվում է երկու անգամ ավելի արագ՝ պահպանելով նույն ամպլիտուդը և փուլը: Մեկ լրիվ ցիկլը 2π ռադիան է:
+                        </div>
+                    </div>
+                    
+                    <!-- Phase Card -->
+                    <div class="concept-card" id="phase">
+                        <h3>Փուլային տեղաշարժ</h3>
+                        <p>Ինչպես է հորիզոնական տեղափոխությունը ազդում ալիքի ցիկլի «մեկնարկի վայր»-ի վրա</p>
+                        <div class="function-plot">
+                            <div class="grid-lines"></div>
+                            <div class="axis x-axis"></div>
+                            <div class="axis y-axis"></div>
+                            <svg class="function-svg" viewBox="0 0 400 200" preserveAspectRatio="none">
+                                <path id="referenceCurve" d="" fill="none" stroke="rgba(108, 117, 125, 0.4)" stroke-width="2" stroke-dasharray="6,4"/>
+                                <path id="phaseCurve" d="" fill="none" stroke="#fbbb09" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle class="ox-intersection" id="phaseOx1" cx="100" cy="100" r="3.5" fill="#fbbb09" stroke="white" stroke-width="1"/>
+                                <circle class="ox-intersection" id="phaseOx2" cx="200" cy="100" r="3.5" fill="#fbbb09" stroke="white" stroke-width="1"/>
+                                <circle class="ox-intersection" id="phaseOx3" cx="300" cy="100" r="3.5" fill="#fbbb09" stroke="white" stroke-width="1"/>
+                                <circle id="zeroRef" cx="200" cy="100" r="4" fill="rgba(108, 117, 125, 0.6)" stroke="white" stroke-width="1.5"/>
+                                <circle id="zeroShift" cx="200" cy="100" r="4" fill="#fbbb09" stroke="white" stroke-width="1.5"/>
+                                <line id="shiftArrow" x1="200" y1="180" x2="200" y2="180" stroke="#fbbb09" stroke-width="2"/>
+                                <polygon id="arrowHead" points="200,180 195,185 205,185" fill="#fbbb09"/>
+                            </svg>
+                        </div>
+                        <div class="interactive-controls">
+                            <div class="control-group">
+                                <label for="phaseControl">Փուլային տեղաշարժ (φ): <span id="phaseDisplay">0° (0π)</span></label>
+                                <input type="range" id="phaseControl" min="-180" max="180" value="0" step="1">
+                            </div>
+                        </div>
+                        <div class="explanation-box">
+                            <h4>Փուլային տեղաշարժի բնութագիրը</h4>
+                            <div class="formula-display">y = A·sin(ωx + φ) + D</div>
+                            <p>Փուլային տեղաշարժը (<span class="formula-highlight">φ</span>) գրաֆիկը տեղափոխում է ձախ կամ աջ՝ առանց դրա ձևը փոխելու։ Այն որոշում է ալիքի ցիկլի մեկնարկի վայրը՝ կոորդինատների սկզբնակետի նկատմամբ։</p>
+                            <div class="key-points">
+                                <div class="key-point">
+                                    <strong>Հորիզոնական տեղաշարժ</strong>
+                                    <div class="value">−φ/ω միավորով</div>
+                                </div>
+                                <div class="key-point">
+                                    <strong>Ցիկլի մեկնարկի վայր</strong>
+                                    <div class="value">x = −φ/ω</div>
+                                </div>
+                                <div class="key-point">
+                                    <strong>φ > 0</strong>
+                                    <div class="value">տեղաշարժում է ձախ</div>
+                                </div>
+                                <div class="key-point">
+                                    <strong>φ < 0</strong>
+                                    <div class="value">տեղաշարժում է աջ</div>
+                                </div>
+                            </div>
+                            <p>Համեմատության համար մոխրագույն ալիքը բնութագրում է φ = 0 դեպքը։ Երբ φ = 0, ալիքի ցիկլը «սկսվում» է սկզբնակետից: Երբ φ ≠ 0 է, ալիքը հորիզոնական ուղղությամբ տեղաշարժվում է <span class="formula-highlight">−φ/ω</span> միավորով: Դիտողություն. Իրական տեղաշարժը կախված է և՛ φ-ից, և՛ ω-ից:</p>
+                            <p><strong>Ուշադրություն.</strong> φ ռադիանով փուլային տեղաշարժը ֆունկցիայի արգումենտը փոփոխում է φ-ով, բայց իրական հորիզոնական տեղաշարժը −φ/ω է։</p>
+                        </div>
+                        <div class="mathematical-insight">
+                            <strong>🎯 Գլխավոր եզրակացություն</strong>
+                            φ փուլային տեղաշարժը գործում է ω անկյունային հաճախականության հետ համատեղ։ Ֆիքսված ω-ի դեպքում π (180°) փուլային տեղաշարժը շրջում է ալիքը՝ դարձնելով վերջինս առաջինի հայելային արտապատկերումը OX առանցքի նկատմամբ։ Արգումենտի π/2-ով փոփոխումը սինուսը վերածում է կոսինուսի, ուստի տրված հավասարումով ֆունկցիան ներառում է նաև կոսինուսով ֆունկցիան․ φ=π/2 ⇒ y=Acos(ωx)։ Ազդանշանների մշակման մեջ փուլային տարբերությունները կարևոր են միջամտությունների օրինաչափությունների և համաժամեցման (սինխրոնիզացիա) համար։
+                        </div>
+                    </div>
+                    
+                    <!-- Vertical Shift Card -->
+                    <div class="concept-card" id="vertical">
+                        <h3>Ուղղահայաց տեղաշարժ</h3>
+                        <p>Ինչպես է ուղղահայաց տեղաշարժը տեղափոխում ալիքը վերև կամ ներքև</p>
+                        <div class="function-plot">
+                            <div class="grid-lines"></div>
+                            <div class="axis x-axis"></div>
+                            <div class="axis y-axis"></div>
+                            <svg class="function-svg" viewBox="0 0 400 200" preserveAspectRatio="none">
+                                <line id="verticalMidline" x1="0" y1="100" x2="400" y2="100" stroke="#6c757d" stroke-width="1" stroke-dasharray="5,5"/>
+                                <path id="verticalCurve" d="M0,100 Q50,50 100,100 T200,100 T300,100 T400,100" 
+                                      fill="none" stroke="#095ce1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                <line id="verticalShiftLine" x1="350" y1="100" x2="350" y2="100" stroke="#ec4899" stroke-width="2" stroke-dasharray="5,5"/>
+                                <text id="verticalShiftLabel" x="360" y="100" font-size="12" fill="#ec4899" text-anchor="start">D=0</text>
+                            </svg>
+                        </div>
+                        <div class="interactive-controls">
+                            <div class="control-group">
+                                <label for="verticalControl">Ուղղահայաց տեղաշարժ (D): <span id="verticalDisplay">0</span></label>
+                                <input type="range" id="verticalControl" min="-45" max="45" value="0">
+                            </div>
+                        </div>
+                        <div class="explanation-box">
+                            <h4>Ուղղահայաց տեղաշարժի բնութագիրը</h4>
+                            <div class="formula-display">y = A·sin(ωx + φ) + D</div>
+                            <p>Ուղղահայաց տեղաշարժը (<span class="formula-highlight">D</span>) գրաֆիկը տեղափոխում է վերև կամ ներքև՝ փոխելով «միջին» գծի դիրքը՝ առանց ալիքի ձևը փոխելու։</p>
+                            <div class="key-points">
+                                <div class="key-point">
+                                    <strong>Միջին գիծը</strong>
+                                    <div class="value">y = D</div>
+                                </div>
+                                <div class="key-point">
+                                    <strong>Արժեքների բազմությունը</strong>
+                                    <div class="value">[D−A, D+A]</div>
+                                </div>
+                                <div class="key-point">
+                                    <strong>D > 0</strong>
+                                    <div class="value">տեղաշաժում է վերև</div>
+                                </div>
+                                <div class="key-point">
+                                    <strong>D < 0</strong>
+                                    <div class="value">տեղաշարժում է ներքև</div>
+                                </div>
+                            </div>
+                            <p>Ֆունկցիայի բոլոր արժեքները փոխվում են <span class="formula-highlight">D</span>-ով։ Ֆունկցիայի «միջին» գիծը է դառնում <span class="formula-highlight">y = D</span> ուղիղը, իսկ արժեքների բազմությունը՝ <span class="formula-highlight">[D−A, D+A]</span> միջակայքը։ Սա ներկայացնում է ալիքի զուգահեռ տեղափոխություն օրդինատների առանցքի ուղղությամբ։</p>
+                            <p>Պրակտիկ կիրառություններ. D-ն ներկայացնում է DC շեղումը էլեկտրական ազդանշաններում, բազային գիծը` տատանողական համակարգերում, կամ էլ պարբերական երևույթների, ինչպիսիք են մակընթացությունները կամ ջերմաստիճանները, միջին արժեքը։</p>
+                        </div>
+                        <div class="mathematical-insight">
+                            <strong>🎯 Գլխավոր եզրակացություն</strong>
+                            D-ով ուղղահայաց տեղաշարժը հաստատուն փոփոխում է բոլոր y արժեքները՝ առանց ազդելու ալիքի ձևի, ամպլիտուդի կամ պարբերության վրա: Սովորաբար այն կիրառվում է մնացած բոլոր ձևափոխություններից հետո: Ազդանշանի մշակման ժամանակ հաճախ անհրաժեշտ է լինում D-ն (DC շեղում) հեռացնել AC բաղադրիչը վերլուծելուց առաջ:
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- General Summary Section -->
+                <div class="general-sine-section" id="general-sine">
+                    <h3>Ամփոփում</h3>
+                    <div class="formula">f(x) = A·sin(ωx + φ) + D</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+                        <div>
+                            <h4>Ամպլիտուդ (A)</h4>
+                            <p>Վերահսկում է ալիքի ուղղահայաց ձգումը/սեղմումը։ Որոշում է «միջին» գծից առավելագույն շեղումը։</p>
+                            <p><strong>Արժեքների բազմության վրա ազդեցությունը.</strong> Փոխում է ուղղահայաց սահմանները [D-A, D+A]-ի։</p>
+                        </div>
+                        <div>
+                            <h4>Անկյունային հաճախականություն (ω)</h4>
+                            <p>Վերահսկում է մեկ միավորի համար ալիքի տատանման արագությունը ռադիաններով։</p>
+                            <p><strong>Պարբերություն՝</strong> T = 2π/|ω| (միավոր մեկ ցիկլի համար)</p>
+                            <p><strong>Հաճախականություն՝</strong> f = |ω|/(2π) (ցիկլ մեկ միավորի համար)</p>
+                            <p><strong>Կապը․</strong> |ω| = 2πf = 2π/T</p>
+                        </div>
+                        <div>
+                            <h4>Փուլային տեղաշարժ (φ)</h4>
+                            <p>Վերահսկում է ալիքի հորիզոնական տեղափոխությունը։ Տեղաշարժում է ալիքի ցիկլի «մեկնարկի վայր»-ը։</p>
+                            <p><strong>Տեղաշարժի չափը՝</strong> -φ/ω միավոր հորիզոնական ուղղությամբ։ Դրական φ-ն տեղաշարժում է ձախ, իսկ բացասական φ-ն՝ աջ։</p>
+                        </div>
+                        <div>
+                            <h4>Ուղղահայաց տեղաշարժ (D)</h4>
+                            <p>Վերահսկում է ալիքի ուղղահայաց տեղափոխությունը։ Փոխում է «միջին» գծի դիրքը։</p>
+                            <p><strong>Արժեքների բազմության վրա ազդեցությունը.</strong> Փոփոխում է բոլոր y արժեքները D-ով։ Վերջնական արժքների տիրույթը [D-A, D+A] միջակայքն է։</p>
+                        </div>
+                    </div>
+                    <div class="mathematical-insight" style="margin-top: 1.5rem;">
+                        <strong>🎯 Գլխավոր եզրակացություն</strong> Ընդհանրապես y = A sin(ωx + φ) + D ֆունկցիայում յուրաքանչյուր պարամետր անկախ կերպով ազդում է ալիքի վրա:
+                        <ul>
+                            <li>A-ն (ամպլիտուդ) ալիքը ուղղահայաց մասշտաբավորում է, այսինքն՝ բազմապատկում է բոլոր y արժեքները։</li>
+                            <li>ω-ն (անկյունային հաճախականություն) ալիքը հորիզոնական մասշտաբավորում է՝ ազդելով T պարբերության և f հաճախականության վրա։</li>
+                            <li>φ-ն (փուլ) ալիքը տեղաշարժում է հորիզոնական ուղղությամբ։ Ալիքի ցիկլի «մեկնարկի վայր»-ը x = -φ/ω-ն է։</li>
+                            <li>D-ն (ուղղահայաց տեղաշարժ) ալիքը տեղաշարժում է ուղղահայաց ուղղությամբ՝ փոփոխելով բոլոր y արժեքները հաստատուն մեծությամբ։</li>
+                        </ul>
+                        <p style="margin-top: 0.5rem;">Ընդհանուր առմամբ, ձևափոխությունները տեղի են ունենում հետևյալ հերթականությամբ՝</p>
+                        <ol style="margin-top: 0.5rem; padding-left: 1.2rem;">
+                            <li> հորիզոնական մասշտաբավորում <span class="nobr">(ω)</span>,</li>
+                            <li> հորիզոնական տեղաշարժ <span class="nobr">(φ)</span>,</li>
+                            <li> ուղղահայաց մասշտաբավորում <span class="nobr">(A)</span>,</li>
+                            <li> ուղղահայաց տեղաշարժ <span class="nobr">(D)</span>:</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // === SVG PATH GENERATION (Simplified for reliability) ===
+        function smoothPath(points) {
+            if (points.length === 0) return "";
+            let d = `M${points[0][0]},${points[0][1]}`;
+            for (let i = 1; i < points.length; i++) {
+                d += `L${points[i][0]},${points[i][1]}`;
+            }
+            return d;
+        }
+        
+        // Amplitude
+        const amplitudeControl = document.getElementById('amplitudeControl');
+        const amplitudeCurve = document.getElementById('amplitudeCurve');
+        const amplitudeDisplay = document.getElementById('amplitudeDisplay');
+        const amplitudeLabel = document.getElementById('amplitudeLabel');
+        const maxLine = document.getElementById('maxLine');
+        const minLine = document.getElementById('minLine');
+        const amplitudeLine = document.getElementById('amplitudeLine');
+        const peakPoint = document.getElementById('peakPoint');
+        const troughPoint = document.getElementById('troughPoint');
+        
+        function updateAmplitude() {
+            const amp = parseInt(amplitudeControl.value);
+            amplitudeDisplay.textContent = amp;
+            const points = [];
+            for (let x = 0; x <= 400; x += 4) {
+                const y = 100 - amp * Math.sin((x * 2 * Math.PI) / 200);
+                points.push([x, Math.max(0, Math.min(200, y))]);
+            }
+            amplitudeCurve.setAttribute('d', smoothPath(points));
+            const clampedAmp = Math.min(amp, 100);
+            maxLine.setAttribute('y1', 100 - clampedAmp);
+            maxLine.setAttribute('y2', 100 - clampedAmp);
+            minLine.setAttribute('y1', 100 + clampedAmp);
+            minLine.setAttribute('y2', 100 + clampedAmp);
+            amplitudeLine.setAttribute('y2', 100 - clampedAmp);
+            amplitudeLabel.setAttribute('y', 100 - clampedAmp / 2);
+            peakPoint.setAttribute('cy', 100 - clampedAmp);
+            troughPoint.setAttribute('cy', 100 + clampedAmp);
+            amplitudeLine.setAttribute('x1', 50);
+            amplitudeLine.setAttribute('x2', 50);
+            amplitudeLabel.setAttribute('x', 60);
+            const percent = ((amp - 10) / 70) * 100;
+            amplitudeControl.style.setProperty('--range-percent', `${percent}%`);
+        }
+        
+        // Period - FIXED: Now correctly controls ω and shows shorter period when ω increases
+        const periodControl = document.getElementById('periodControl');
+        const periodCurveColored = document.getElementById('periodCurveColored');
+        const periodCurveGrey = document.getElementById('periodCurveGrey');
+        const periodDisplay = document.getElementById('periodDisplay');
+        const periodMarker = document.getElementById('periodMarker');
+        const periodLine = document.getElementById('periodLine');
+        const periodShading = document.getElementById('periodShading');
+        const startPoint = document.getElementById('startPoint');
+        const endPoint = document.getElementById('endPoint');
+        
+        function updatePeriod() {
+            const omega = parseFloat(periodControl.value); // Now it's ω
+            const periodUnits = (2 * Math.PI) / omega;    // T = 2π / ω
+            const scale = 60;                             // Pixels per unit
+            const periodPx = Math.min(400, Math.max(20, periodUnits * scale));
+            
+            // Update display
+            periodDisplay.textContent = omega.toFixed(2);
+            
+            // FIX: Always clamp the shaded region to max 400px
+            const visiblePeriodPx = Math.min(periodPx, 400);
+            periodShading.setAttribute('width', visiblePeriodPx);
+            
+            const amp = 50;
+            const coloredPoints = [];
+            const greyPoints = [];
+            
+            // Draw one full period (0 to periodPx) but only up to 400px
+            const drawLimit = Math.min(periodPx, 400);
+            for (let x = 0; x <= drawLimit; x += 2) {
+                const mathX = x / scale; // Convert pixels back to mathematical units
+                const y = 100 - amp * Math.sin(omega * mathX);
+                coloredPoints.push([x, y]);
+            }
+            periodCurveColored.setAttribute('d', smoothPath(coloredPoints));
+            
+            // Draw rest in grey (if any visible space remains)
+            if (drawLimit < 400) {
+                for (let x = drawLimit; x <= 400; x += 2) {
+                    const mathX = x / scale;
+                    const y = 100 - amp * Math.sin(omega * mathX);
+                    greyPoints.push([x, y]);
+                }
+                periodCurveGrey.setAttribute('d', smoothPath(greyPoints));
+                periodCurveGrey.style.display = 'block';
+            } else {
+                periodCurveGrey.style.display = 'none';
+            }
+            
+            // FIX: Let markers continue moving beyond 400px (outside visible area)
+            // Calculate the ACTUAL period position in pixels (not clamped)
+            const actualPeriodPx = periodUnits * scale;
+            
+            // Always update the positions, even if they go beyond 400px
+            periodMarker.setAttribute('x1', actualPeriodPx);
+            periodMarker.setAttribute('x2', actualPeriodPx);
+            
+            periodLine.setAttribute('x2', Math.min(actualPeriodPx, 400)); // Green line stops at edge
+            
+            endPoint.setAttribute('cx', actualPeriodPx);
+            
+            // Always show all elements (they'll be clipped by SVG viewport)
+            periodMarker.style.display = 'block';
+            periodLine.style.display = 'block';
+            endPoint.style.display = 'block';
+            
+            // Update slider fill
+            const percent = ((omega - 0.5) / (6.28 - 0.5)) * 100;
+            periodControl.style.setProperty('--range-percent', `${percent}%`);
+        }
+        
+        // Phase
+        const phaseControl = document.getElementById('phaseControl');
+        const phaseCurve = document.getElementById('phaseCurve');
+        const referenceCurve = document.getElementById('referenceCurve');
+        const phaseDisplay = document.getElementById('phaseDisplay');
+        const zeroRef = document.getElementById('zeroRef');
+        const zeroShift = document.getElementById('zeroShift');
+        const shiftArrow = document.getElementById('shiftArrow');
+        const arrowHead = document.getElementById('arrowHead');
+        
+        function updatePhase() {
+            const phaseDeg = parseInt(phaseControl.value);
+            const phaseRad = phaseDeg * Math.PI / 180;
+            const period = 200;
+            const amp = 50;
+            const phaseInPi = phaseRad / Math.PI;
+            let displayText = phaseDeg === 0 ? "0° (0π)" : `${phaseDeg}° (${phaseInPi >= 0 ? '+' : ''}${phaseInPi.toFixed(2)}π)`;
+            phaseDisplay.textContent = displayText;
+            const refPoints = [], shiftedPoints = [];
+            for (let x = 0; x <= 400; x += 4) {
+                const yRef = 100 - amp * Math.sin((x * 2 * Math.PI) / period);
+                const yShift = 100 - amp * Math.sin((x * 2 * Math.PI) / period + phaseRad);
+                refPoints.push([x, yRef]);
+                shiftedPoints.push([x, yShift]);
+            }
+            referenceCurve.setAttribute('d', smoothPath(refPoints));
+            phaseCurve.setAttribute('d', smoothPath(shiftedPoints));
+            const shiftPx = -phaseRad * (period / (2 * Math.PI));
+            const center = 200;
+            zeroRef.setAttribute('cx', center);
+            zeroShift.setAttribute('cx', Math.max(0, Math.min(400, center + shiftPx)));
+            const halfPeriod = period / 2;
+            ['phaseOx1', 'phaseOx2', 'phaseOx3'].forEach((id, i) => {
+                const x = center + shiftPx + (i - 1) * halfPeriod;
+                document.getElementById(id).setAttribute('cx', Math.max(0, Math.min(400, x)));
+            });
+            
+            // FIXED TYPO: Removed duplicate line and kept only one proper assignment
+            const endX = Math.max(0, Math.min(400, center + shiftPx));
+            shiftArrow.setAttribute('x1', center);
+            shiftArrow.setAttribute('x2', endX);
+            
+            if (Math.abs(phaseDeg) <= 1) {
+                arrowHead.style.display = 'none';
+            } else {
+                arrowHead.style.display = 'block';
+                const startX = center;
+                const endX = center + shiftPx;
+                const headSize = 5;
+                
+                if (endX < startX) {
+                    // Shift LEFT (φ > 0) → arrow points LEFT
+                    arrowHead.setAttribute('points', `${endX},180 ${endX+headSize},175 ${endX+headSize},185`);
+                } else {
+                    // Shift RIGHT (φ < 0) → arrow points RIGHT
+                    arrowHead.setAttribute('points', `${endX},180 ${endX-headSize},175 ${endX-headSize},185`);
+                }
+            }
+            const percent = ((phaseDeg + 180) / 360) * 100;
+            phaseControl.style.setProperty('--range-percent', `${percent}%`);
+        }
+        
+        // Vertical Shift - FIXED: Now moves label with graph
+        const verticalControl = document.getElementById('verticalControl');
+        const verticalDisplay = document.getElementById('verticalDisplay');
+        const verticalCurve = document.getElementById('verticalCurve');
+        const verticalMidline = document.getElementById('verticalMidline');
+        const verticalShiftLine = document.getElementById('verticalShiftLine');
+        const verticalShiftLabel = document.getElementById('verticalShiftLabel');
+        
+        function updateVerticalShift() {
+            const D = parseInt(verticalControl.value);
+            verticalDisplay.textContent = D;
+            const amplitude = 50;
+            const period = 200;
+            const midlineY = 100 - D;
+            verticalMidline.setAttribute('y1', midlineY);
+            verticalMidline.setAttribute('y2', midlineY);
+            const points = [];
+            for (let x = 0; x <= 400; x += 4) {
+                const y = midlineY - amplitude * Math.sin((x * 2 * Math.PI) / period);
+                points.push([x, Math.max(0, Math.min(200, y))]);
+            }
+            verticalCurve.setAttribute('d', smoothPath(points));
+            const labelY = midlineY - 5;
+            verticalShiftLabel.setAttribute('y', Math.max(15, Math.min(185, labelY)));
+            verticalShiftLabel.setAttribute('x', 360);
+            verticalShiftLabel.textContent = `D=${D}`;
+            verticalShiftLine.setAttribute('y1', 100);
+            verticalShiftLine.setAttribute('y2', midlineY);
+            verticalShiftLine.setAttribute('x1', 350);
+            verticalShiftLine.setAttribute('x2', 350);
+            const percent = ((D + 45) / 90) * 100;
+            verticalControl.style.setProperty('--range-percent', `${percent}%`);
+        }
+        
+        amplitudeControl.addEventListener('input', updateAmplitude);
+        periodControl.addEventListener('input', updatePeriod);
+        phaseControl.addEventListener('input', updatePhase);
+        verticalControl.addEventListener('input', updateVerticalShift);
+        
+        updateAmplitude();
+        updatePeriod();
+        updatePhase();
+        updateVerticalShift();
+        
+        document.addEventListener('keydown', function(e) {
+            const activeElement = document.activeElement;
+            if (activeElement && activeElement.type === 'range') {
+                const step = e.shiftKey ? 10 : 1;
+                switch(e.key) {
+                    case 'ArrowUp':
+                    case 'ArrowRight':
+                        activeElement.value = Math.min(parseInt(activeElement.value) + step, parseInt(activeElement.max));
+                        activeElement.dispatchEvent(new Event('input'));
+                        e.preventDefault();
+                        break;
+                    case 'ArrowDown':
+                    case 'ArrowLeft':
+                        activeElement.value = Math.max(parseInt(activeElement.value) - step, parseInt(activeElement.min));
+                        activeElement.dispatchEvent(new Event('input'));
+                        e.preventDefault();
+                        break;
+                }
+            }
+        });
+        
+        window.addEventListener('resize', function() {
+            updateAmplitude();
+            updatePeriod();
+            updatePhase();
+            updateVerticalShift();
+        });
+        
+        function resetAllVisualizations() {
+            amplitudeControl.value = 45;
+            periodControl.value = 3.14;
+            phaseControl.value = 0;
+            verticalControl.value = 0;
+            updateAmplitude();
+            updatePeriod();
+            updatePhase();
+            updateVerticalShift();
+        }
+        
+        const resetButton = document.createElement('button');
+        resetButton.textContent = 'Վերագործարկել';
+        resetButton.className = 'reset-button';
+        resetButton.addEventListener('click', resetAllVisualizations);
+        document.body.appendChild(resetButton);
+        
+        // Highlight section when navigated via anchor link
+        function highlightSectionOnAnchor() {
+            // Get the fragment (e.g., #phase)
+            const hash = window.location.hash;
+            if (hash) {
+                const target = document.querySelector(hash);
+                if (target && target.classList.contains('concept-card')) {
+                    // Remove any existing animation
+                    target.classList.remove('section-highlight');
+                    // Trigger reflow to restart animation
+                    void target.offsetWidth;
+                    // Add animation class
+                    target.classList.add('section-highlight');
+                }
+            }
+        }
+        
+        // Run on page load (for direct links like ...#phase)
+        highlightSectionOnAnchor();
+        
+        // Also run when user clicks a nav link
+        document.querySelectorAll('nav a[href^="#"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Wait a moment for scroll to finish, then highlight
+                setTimeout(() => {
+                    const targetId = this.getAttribute('href');
+                    const target = document.querySelector(targetId);
+                    if (target) {
+                        target.classList.remove('section-highlight');
+                        void target.offsetWidth;
+                        target.classList.add('section-highlight');
+                    }
+                }, 300); // Slight delay after scroll starts
+            });
+        });
+    </script>
+</body>
+</html>
